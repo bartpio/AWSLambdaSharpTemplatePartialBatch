@@ -1,0 +1,38 @@
+version: 2.1
+workflows:
+  default:
+    jobs:
+      - build-pack
+      - push:
+          requires:
+            - build-pack
+          context:
+            - nuu
+jobs:
+  build-pack:
+    machine: true
+    resource_class: bartpio/linux
+    steps:
+      - run: rm -fr /tmp/workspace
+      - checkout
+      - run: dotnet build --configuration Release
+      - run: dotnet test --configuration Release
+      - run: dotnet pack --configuration Release -o ./outputs/packages/
+      - store_artifacts:
+          path: ./outputs/packages
+          destination: packages
+      - persist_to_workspace:
+          root: ./outputs/packages
+          paths:
+            - "*.nupkg"
+            - "*.snupkg"
+  push:
+    machine: true
+    resource_class: bartpio/linux
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Push to NuGet
+          command: |
+            dotnet nuget push /tmp/workspace/*.* --api-key ${NUGET_TOKEN} --skip-duplicate --source https://api.nuget.org/v3/index.json
