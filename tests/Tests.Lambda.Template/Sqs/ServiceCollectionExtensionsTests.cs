@@ -1,5 +1,6 @@
 ﻿using Amazon.Lambda.SQSEvents;
 using Kralizek.Lambda;
+using Kralizek.Lambda.PartialBatch;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 
@@ -23,7 +24,7 @@ public class ServiceCollectionExtensionsTests
 
         var handler = serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
 
-        Assert.That(handler, Is.InstanceOf<SqsEventHandler<TestMessage>>());
+        Assert.That(handler, Is.InstanceOf<Kralizek.Lambda.SqsEventHandler<TestMessage>>());
     }
 
     [Test]
@@ -41,7 +42,7 @@ public class ServiceCollectionExtensionsTests
 
         var handler = serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
 
-        Assert.That(handler, Is.InstanceOf<ParallelSqsEventHandler<TestMessage>>());
+        Assert.That(handler, Is.InstanceOf<Kralizek.Lambda.ParallelSqsEventHandler<TestMessage>>());
     }
 
     [Test]
@@ -75,37 +76,53 @@ public class ServiceCollectionExtensionsTests
 
         serviceProvider.GetRequiredService<IMessageSerializer>();
     }
-        
+
     [Test]
-    public void UseQueueMessageHandler_registers_default_SqsEventHandler()
+    public void UsePartialBatchQueueMessageHandler_registers_default_SqsEventHandler()
     {
         var services = new ServiceCollection();
 
         services.AddLogging();
 
-        services.UseQueueMessageHandler<TestMessage, TestMessageHandler>();
+        services.UsePartialBatchQueueMessageHandler<TestMessage, TestMessageHandler>();
 
         var serviceProvider = services.BuildServiceProvider();
 
-        var handler = serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
+        {
+            var handler = serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
 
-        Assert.That(handler, Is.InstanceOf<SqsEventHandler<TestMessage>>());
+            Assert.That(handler, Is.InstanceOf<Kralizek.Lambda.PartialBatch.SqsEventHandler<TestMessage>>());
+        }
+
+        {
+            var handler = serviceProvider.GetRequiredService<IRequestResponseHandler<SQSEvent, SQSBatchResponse>>();
+
+            Assert.That(handler, Is.InstanceOf<Kralizek.Lambda.PartialBatch.SqsEventHandler<TestMessage>>());
+        }
     }
 
     [Test]
-    public void UseQueueMessageHandler_registers_ParallelSqsEventHandler_when_parallel_execution_is_enabled()
+    public void UsePartialBatchQueueMessageHandler_registers_ParallelSqsEventHandler_when_parallel_execution_is_enabled()
     {
         var services = new ServiceCollection();
 
         services.AddLogging();
 
-        services.UseQueueMessageHandler<TestMessage, TestMessageHandler>().WithParallelExecution();
+        services.UsePartialBatchQueueMessageHandler<TestMessage, TestMessageHandler>().WithParallelExecution();
 
         var serviceProvider = services.BuildServiceProvider();
 
-        var handler = serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
+        {
+            var handler = serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
 
-        Assert.That(handler, Is.InstanceOf<ParallelSqsEventHandler<TestMessage>>());
+            Assert.That(handler, Is.InstanceOf<Kralizek.Lambda.PartialBatch.ParallelSqsEventHandler<TestMessage>>());
+        }
+
+        {
+            var handler = serviceProvider.GetRequiredService<IRequestResponseHandler<SQSEvent, SQSBatchResponse>>();
+
+            Assert.That(handler, Is.InstanceOf<Kralizek.Lambda.PartialBatch.ParallelSqsEventHandler<TestMessage>>());
+        }
     }
 
     [Test]
