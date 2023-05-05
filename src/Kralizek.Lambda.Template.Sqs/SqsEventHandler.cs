@@ -5,7 +5,7 @@ using Amazon.Lambda.SQSEvents;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Kralizek.Lambda;
+namespace Kralizek.Lambda.PartialBatch;
 
 /// <summary>
 /// An implementation of <see cref="IEventHandler{TInput}"/> specialized for <see cref="SQSEvent"/> that processes all the records in sequence.

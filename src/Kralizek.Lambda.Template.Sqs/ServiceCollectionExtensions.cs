@@ -3,18 +3,10 @@ using Amazon.Lambda.SQSEvents;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Kralizek.Lambda;
+namespace Kralizek.Lambda.PartialBatch;
 
 public static class ServiceCollectionExtensions
 {
-    [Obsolete("Use `services.UseQueueMessageHandler<TMessage,THandler>().UseParallelExecution(maxDegreeOfParallelism);` instead.")]
-    public static IServiceCollection ConfigureSnsParallelExecution(this IServiceCollection services, int maxDegreeOfParallelism)
-    {
-        services.Configure<ParallelSqsExecutionOptions>(option => option.MaxDegreeOfParallelism = maxDegreeOfParallelism);
-
-        return services;
-    }
-        
     /// <summary>
     /// Customizes the registration of the <see cref="IMessageHandler{TMessage}"/> to process the records in parallel.
     /// </summary>
@@ -39,28 +31,11 @@ public static class ServiceCollectionExtensions
 
         return configurator;
     }
-        
-    /// <summary>
-    /// Registers a custom serializer for messages.
-    /// </summary>
-    /// <param name="services">The collection of service registrations.</param>
-    /// <param name="lifetime">The lifetime used for the <see cref="IMessageSerializer"/> to register. Defaults to <see cref="ServiceLifetime.Singleton"/>.</param>
-    /// <typeparam name="TSerializer">The concrete type of the <see cref="IMessageSerializer"/> to be registered.</typeparam>
-    /// <returns>The configured collection of service registrations.</returns>
-    public static IServiceCollection UseCustomMessageSerializer<TSerializer>(this IServiceCollection services, ServiceLifetime lifetime = ServiceLifetime.Singleton)
-        where TSerializer : IMessageSerializer
-    {
-        ArgumentNullException.ThrowIfNull(services);
-            
-        services.Add(ServiceDescriptor.Describe(typeof(IMessageSerializer), typeof(TSerializer), lifetime));
-
-        return services;
-    }
 
     [Obsolete("Use `services.UseQueueMessageHandler<TMessage, THandler>();` instead.")]
     public static IServiceCollection UseSqsHandler<TMessage, THandler>(this IServiceCollection services, bool enableParallelExecution = false)
-        where TMessage : class
-        where THandler : class, IMessageHandler<TMessage>
+    where TMessage : class
+    where THandler : class, IMessageHandler<TMessage>
     {
         var configurator = UseQueueMessageHandler<TMessage, THandler>(services);
 
@@ -96,19 +71,6 @@ public static class ServiceCollectionExtensions
 
         return configurator;
     }
-}
-
-/// <summary>
-/// An interface used to represent a configurator of <see cref="IMessageHandler{TMessage}"/>.
-/// </summary>
-/// <typeparam name="TMessage">The internal type of the SQS message.</typeparam>
-public interface IMessageHandlerConfigurator<TMessage>
-    where TMessage : class
-{
-    /// <summary>
-    /// The collection of service registrations.
-    /// </summary>
-    IServiceCollection Services { get; }
 }
 
 internal sealed class MessageHandlerConfigurator<TMessage> : IMessageHandlerConfigurator<TMessage>

@@ -8,18 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Kralizek.Lambda;
-
-/// <summary>
-/// A set of options to customize the parallel execution of SQS messages.
-/// </summary>
-public class ParallelSqsExecutionOptions
-{
-    /// <summary>
-    /// The top limit of concurrent threads processing the incoming notifications. 
-    /// </summary>
-    public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount;
-}
+namespace Kralizek.Lambda.PartialBatch;
 
 /// <summary>
 /// An implementation of <see cref="IEventHandler{TInput}"/> specialized for <see cref="SQSEvent"/> that processes all the records in parallel.
