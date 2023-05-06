@@ -7,8 +7,8 @@ This library adds [partial batch support for SQS-triggered Lambdas](https://aws.
 ## Quick Start
 
  - Call `UsePartialBatchQueueMessageHandler` instead of `UseQueueMessageHandler`
- - Derive your entry point class from `RequestResponseFunction<SQSEvent, SQSBatchResponse>` instead of `EventFunction<SQSEvent>`
- - Write your `IEventHandler<TInput>` (and provide its type to `UsePartialBatchQueueMessageHandler`) as usual
+ - Derive your entry point class from `PartialBatchEventFunction` instead of `EventFunction<SQSEvent>`
+ - Write your `IMessageHandler<TInput>` (and provide its type to `UsePartialBatchQueueMessageHandler`) as usual
 
 `UsePartialBatchQueueMessageHandler` adds partial batch support by registering an `IRequestResponseHandler<SQSEvent, SQSBatchResponse>` (alongside the usual `IEventHandler<SQSEvent>`). Any exceptions thrown by your handler will be caught, logged, and provided to AWS, using a `SQSBatchResponse` (generated on your behalf) that conveys which messages failed to process.
 
