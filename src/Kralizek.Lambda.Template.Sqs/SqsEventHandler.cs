@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Amazon.Lambda.Core;
+﻿using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
