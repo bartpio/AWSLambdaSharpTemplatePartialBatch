@@ -30,7 +30,7 @@ public class SqsEventHandler<TMessage> : IEventHandler<SQSEvent> where TMessage 
     /// <exception cref="InvalidOperationException">Thrown if there is no registered implementation of <see cref="IMessageHandler{TMessage}"/>.</exception>
     public async Task HandleAsync(SQSEvent? input, ILambdaContext context)
     {
-        if (input is { Records: { } })
+        if (input is { Records.Count: > 0 })
         {
             foreach (var record in input.Records)
             {
