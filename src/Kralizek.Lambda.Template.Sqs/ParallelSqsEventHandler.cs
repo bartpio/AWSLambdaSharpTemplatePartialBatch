@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
+using Kralizek.Lambda.PartialBatch.EventLog;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -60,12 +61,15 @@ public class ParallelSqsEventHandler<TMessage> : IEventHandler<SQSEvent>, IReque
     {
         if (input is { Records.Count: > 0 })
         {
+            await using var batchScopeServices = await _serviceProvider.CreateBatchScopeAsync(_logger, input).ConfigureAwait(false);
+            var (sqsEventLogger, sqsMessageIndexMap) = batchScopeServices;
+
             await input.Records.ForEachAsync(_options.MaxDegreeOfParallelism, async singleSqsMessage =>
             {
                 using var scope = _serviceProvider.CreateScope();
 
                 var sqsMessage = singleSqsMessage.Body;
-                _logger.LogDebug("Message received: {Message}", sqsMessage);
+                await sqsEventLogger.MessageReceivedAsync(_logger, input, singleSqsMessage, sqsMessageIndexMap.GetIndex(singleSqsMessage)).ConfigureAwait(false);
 
                 var serializer = _serviceProvider.GetRequiredService<IMessageSerializer>();
 
@@ -86,8 +90,12 @@ public class ParallelSqsEventHandler<TMessage> : IEventHandler<SQSEvent>, IReque
                 }
                 catch (Exception exc) when (batchItemFailures is not null)
                 {
-                    _logger.LogError(exc, "Recording batch item failure for message {MessageId}", singleSqsMessage.MessageId);
+                    await sqsEventLogger.PartialBatchItemFailureAsync(_logger, input, singleSqsMessage, exc, sqsMessageIndexMap.GetIndex(singleSqsMessage)).ConfigureAwait(false);
                     batchItemFailures.Add(new() { ItemIdentifier = singleSqsMessage.MessageId });
+                }
+                finally
+                {
+                    await sqsEventLogger.MessageCompletedAsync(_logger, input, singleSqsMessage, sqsMessageIndexMap.GetIndex(singleSqsMessage)).ConfigureAwait(false);
                 }
             });
         }

@@ -7,6 +7,7 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 using Amazon.Lambda.TestUtilities;
 using Kralizek.Lambda;
+using Kralizek.Lambda.PartialBatch.EventLog;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -23,7 +24,7 @@ public class SqsEventHandlerTests
     private Mock<IServiceProvider> mockServiceProvider;
     private Mock<ILoggerFactory> mockLoggerFactory;
     private Mock<IServiceScope> mockServiceScope;
-
+    private Mock<ISqsEventLogger> mockEventHandlerLogger;
 
     [SetUp]
     public void Initialize()
@@ -58,6 +59,11 @@ public class SqsEventHandlerTests
         mockLoggerFactory = new Mock<ILoggerFactory>();
         mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
             .Returns(Mock.Of<ILogger>());
+
+        mockEventHandlerLogger = new Mock<ISqsEventLogger>();
+
+        mockServiceProvider.Setup(p => p.GetService(typeof(IEnumerable<ISqsEventLogger>)))
+            .Returns(new ISqsEventLogger[] { mockEventHandlerLogger.Object });
     }
 
     private Kralizek.Lambda.PartialBatch.SqsEventHandler<TestMessage> CreateSystemUnderTest() =>
@@ -255,5 +261,20 @@ public class SqsEventHandlerTests
 
         var expectedBatchFailures = testErrors ? new string[] { "msg1", "msg2" } : Array.Empty<string>();
         Assert.That(batchResponse.BatchItemFailures.Select(x => x.ItemIdentifier), Is.EquivalentTo(expectedBatchFailures));
+
+        VerifyEventHandlerLogger(mockEventHandlerLogger, testErrors, sqsEvent);
+    }
+
+    internal static void VerifyEventHandlerLogger(Mock<ISqsEventLogger> mockEventHandlerLogger, bool testErrors, SQSEvent sqsEvent)
+    {
+        mockEventHandlerLogger.Verify(x => x.BatchReceivedAsync(It.IsAny<ILogger>(), sqsEvent), Times.Once);
+        mockEventHandlerLogger.Verify(x => x.MessageReceivedAsync(It.IsAny<ILogger>(), sqsEvent, sqsEvent.Records[0], 0), Times.Once);
+        mockEventHandlerLogger.Verify(x => x.MessageReceivedAsync(It.IsAny<ILogger>(), sqsEvent, sqsEvent.Records[1], 1), Times.Once);
+        mockEventHandlerLogger.Verify(x => x.PartialBatchItemFailureAsync(It.IsAny<ILogger>(), sqsEvent, sqsEvent.Records[0], It.IsAny<InvalidDataException>(), 0), testErrors ? Times.Once : Times.Never);
+        mockEventHandlerLogger.Verify(x => x.PartialBatchItemFailureAsync(It.IsAny<ILogger>(), sqsEvent, sqsEvent.Records[1], It.IsAny<InvalidDataException>(), 1), testErrors ? Times.Once : Times.Never);
+        mockEventHandlerLogger.Verify(x => x.MessageCompletedAsync(It.IsAny<ILogger>(), sqsEvent, sqsEvent.Records[0], 0), Times.Once);
+        mockEventHandlerLogger.Verify(x => x.MessageCompletedAsync(It.IsAny<ILogger>(), sqsEvent, sqsEvent.Records[1], 1), Times.Once);
+        mockEventHandlerLogger.Verify(x => x.BatchCompletedAsync(It.IsAny<ILogger>(), sqsEvent), Times.Once);
+        mockEventHandlerLogger.VerifyNoOtherCalls();
     }
 }

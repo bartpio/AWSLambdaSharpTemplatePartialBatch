@@ -1,5 +1,6 @@
 ﻿using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
+using Kralizek.Lambda.PartialBatch.EventLog;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using static Amazon.Lambda.SQSEvents.SQSBatchResponse;
@@ -56,11 +57,15 @@ public class SqsEventHandler<TMessage> : IEventHandler<SQSEvent>, IRequestRespon
     {
         if (input is { Records.Count: > 0 })
         {
+            await using var batchScopeServices = await _serviceProvider.CreateBatchScopeAsync(_logger, input).ConfigureAwait(false);
+            var (sqsEventLogger, sqsMessageIndexMap) = batchScopeServices;
+
             foreach (var record in input.Records)
             {
                 using var scope = _serviceProvider.CreateScope();
 
                 var sqsMessage = record.Body;
+                await sqsEventLogger.MessageReceivedAsync(_logger, input, record, sqsMessageIndexMap.GetIndex(record)).ConfigureAwait(false);
 
                 var serializer = _serviceProvider.GetRequiredService<IMessageSerializer>();
 
@@ -82,8 +87,12 @@ public class SqsEventHandler<TMessage> : IEventHandler<SQSEvent>, IRequestRespon
                 }
                 catch (Exception exc) when (batchItemFailures is not null)
                 {
-                    _logger.LogError(exc, "Recording batch item failure for message {MessageId}", record.MessageId);
+                    await sqsEventLogger.PartialBatchItemFailureAsync(_logger, input, record, exc, sqsMessageIndexMap.GetIndex(record)).ConfigureAwait(false);
                     batchItemFailures.Add(new() { ItemIdentifier = record.MessageId });
+                }
+                finally
+                {
+                    await sqsEventLogger.MessageCompletedAsync(_logger, input, record, sqsMessageIndexMap.GetIndex(record)).ConfigureAwait(false);
                 }
             }
         }

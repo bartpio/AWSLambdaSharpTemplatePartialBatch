@@ -8,6 +8,7 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 using Amazon.Lambda.TestUtilities;
 using Kralizek.Lambda;
+using Kralizek.Lambda.PartialBatch.EventLog;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -26,6 +27,7 @@ public class ParallelSqsEventHandlerTests
     private Mock<ILoggerFactory> _mockLoggerFactory;
     private Mock<IServiceScope> _mockServiceScope;
     private ParallelSqsExecutionOptions _parallelExecutionOptions;
+    private Mock<ISqsEventLogger> _mockEventHandlerLogger;
 
     [SetUp]
     public void Initialize()
@@ -62,6 +64,11 @@ public class ParallelSqsEventHandlerTests
             .Returns(Mock.Of<ILogger>());
 
         _parallelExecutionOptions = new ParallelSqsExecutionOptions { MaxDegreeOfParallelism = 4 };
+
+        _mockEventHandlerLogger = new Mock<ISqsEventLogger>();
+
+        _mockServiceProvider.Setup(p => p.GetService(typeof(IEnumerable<ISqsEventLogger>)))
+            .Returns(new ISqsEventLogger[] { _mockEventHandlerLogger.Object });
     }
 
     private Kralizek.Lambda.PartialBatch.ParallelSqsEventHandler<TestMessage> CreateSystemUnderTest() =>
@@ -337,5 +344,7 @@ public class ParallelSqsEventHandlerTests
 
         var expectedBatchFailures = testErrors ? new string[] { "msg1", "msg2" } : Array.Empty<string>();
         Assert.That(batchResponse.BatchItemFailures.Select(x => x.ItemIdentifier), Is.EquivalentTo(expectedBatchFailures));
+
+        SqsEventHandlerTests.VerifyEventHandlerLogger(_mockEventHandlerLogger, testErrors, sqsEvent);
     }
 }
