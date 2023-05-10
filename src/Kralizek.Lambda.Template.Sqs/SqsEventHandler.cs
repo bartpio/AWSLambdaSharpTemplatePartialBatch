@@ -18,6 +18,9 @@ public class SqsEventHandler<TMessage> : IEventHandler<SQSEvent>, IRequestRespon
     private readonly ILogger _logger;
     private readonly IServiceProvider _serviceProvider;
 
+    /// <summary>
+    /// Constructs an instance. Generally invoked using DI from the Kralizek Function framework.
+    /// </summary>
     public SqsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory?.CreateLogger("SqsEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));

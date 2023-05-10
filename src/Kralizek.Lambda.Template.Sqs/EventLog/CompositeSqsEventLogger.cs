@@ -16,10 +16,10 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
     {
         private readonly IEnumerable<ISqsEventLogger> _sehLoggers;
 
-        public CompositeSqsEventLogger(IEnumerable<ISqsEventLogger> sehLoggers) =>
+        internal CompositeSqsEventLogger(IEnumerable<ISqsEventLogger> sehLoggers) =>
             _sehLoggers = sehLoggers ?? throw new ArgumentNullException(nameof(sehLoggers));
 
-        public static CompositeSqsEventLogger CreateWithFallback(IServiceProvider serviceProvider)
+        internal static CompositeSqsEventLogger CreateWithFallback(IServiceProvider serviceProvider)
         {
             var result = serviceProvider.GetService<CompositeSqsEventLogger>();
             if (result is not null)
@@ -32,7 +32,7 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
             return new(sehLoggers);
         }
 
-        public async Task BatchReceivedAsync(EventContext eventContext)
+        async Task ISqsEventLogger.BatchReceivedAsync(EventContext eventContext)
         {
             foreach (var entry in _sehLoggers)
             {
@@ -40,7 +40,7 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
             }
         }
 
-        public async Task MessageReceivedAsync(EventContext eventContext, MessageContext messageContext)
+        async Task ISqsEventLogger.MessageReceivedAsync(EventContext eventContext, MessageContext messageContext)
         {
             foreach (var entry in _sehLoggers)
             {
@@ -48,7 +48,7 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
             }
         }
 
-        public async Task PartialBatchItemFailureAsync(EventContext eventContext, MessageContext messageContext, Exception exc)
+        async Task ISqsEventLogger.PartialBatchItemFailureAsync(EventContext eventContext, MessageContext messageContext, Exception exc)
         {
             foreach (var entry in _sehLoggers)
             {
@@ -56,7 +56,7 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
             }
         }
 
-        public async Task MessageCompletedAsync(EventContext eventContext, MessageContext messageContext)
+        async Task ISqsEventLogger.MessageCompletedAsync(EventContext eventContext, MessageContext messageContext)
         {
             foreach (var entry in _sehLoggers)
             {
@@ -64,7 +64,7 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
             }
         }
 
-        public async Task BatchCompletedAsync(EventContext eventContext)
+        async Task ISqsEventLogger.BatchCompletedAsync(EventContext eventContext)
         {
             foreach (var entry in _sehLoggers)
             {

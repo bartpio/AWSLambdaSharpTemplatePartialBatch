@@ -21,6 +21,9 @@ public class ParallelSqsEventHandler<TMessage> : IEventHandler<SQSEvent>, IReque
     private readonly IServiceProvider _serviceProvider;
     private readonly ParallelSqsExecutionOptions _options;
 
+    /// <summary>
+    /// Constructs an instance. Generally invoked using DI from the Kralizek Function framework.
+    /// </summary>
     public ParallelSqsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IOptions<ParallelSqsExecutionOptions> options)
     {
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));

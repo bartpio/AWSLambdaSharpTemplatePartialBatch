@@ -8,13 +8,13 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
         {
             // instantiate a transient CompositeSqsEventLogger with transient IEnumerable<ISqsEventLogger>
             // we don't create a true DI scope here, but we do effectively scope the ISqsEventLogger instances to a batch
-            var sqsEventLogger = CompositeSqsEventLogger.CreateWithFallback(serviceProvider);
+            ISqsEventLogger sqsEventLogger = CompositeSqsEventLogger.CreateWithFallback(serviceProvider);
             await sqsEventLogger.BatchReceivedAsync(eventContext).ConfigureAwait(false);
             var sqsMessageIndexMap = new IndexMap<SQSMessage>(eventContext.Event.Records);
             return new BatchScopeServices(sqsEventLogger, sqsMessageIndexMap) with { EventContext = eventContext };
         }
 
-        public sealed record class BatchScopeServices(CompositeSqsEventLogger EventLogger, IndexMap<SQSMessage> IndexMap) : IAsyncDisposable, IDisposable
+        public sealed record class BatchScopeServices(ISqsEventLogger EventLogger, IndexMap<SQSMessage> IndexMap) : IAsyncDisposable, IDisposable
         {
             private bool _disposed;
 

@@ -2,37 +2,37 @@
 
 namespace Kralizek.Lambda.PartialBatch.EventLog
 {
+    /// <summary>
+    /// Provides basic logging of batch and message progress, to the event handler's (ex. SqsEventHandler) logger.
+    /// </summary>
     public sealed class SqsEventLogger : ISqsEventLogger
     {
-        public Task BatchReceivedAsync(EventContext eventContext)
+        Task ISqsEventLogger.BatchReceivedAsync(EventContext eventContext)
         {
             var (sqsEvent, logger, _) = eventContext;
             logger.LogTrace("Batch received: {batchSize} messages", sqsEvent.Records.Count);
             return Task.CompletedTask;
         }
 
-        public Task MessageReceivedAsync(EventContext eventContext, MessageContext messageContext)
+        Task ISqsEventLogger.MessageReceivedAsync(EventContext eventContext, MessageContext messageContext)
         {
-            var sqsMessage = eventContext[messageContext.Index];
-            eventContext.Logger.LogDebug("Message received: {Message}", sqsMessage.Body);
+            eventContext.Logger.LogDebug("Message received: {Message}", messageContext.Body);
             return Task.CompletedTask;
         }
 
-        public Task PartialBatchItemFailureAsync(EventContext eventContext, MessageContext messageContext, Exception exc)
+        Task ISqsEventLogger.PartialBatchItemFailureAsync(EventContext eventContext, MessageContext messageContext, Exception exc)
         {
-            var sqsMessage = eventContext[messageContext.Index];
-            eventContext.Logger.LogError(exc, "Recording batch item failure for message {MessageId}", sqsMessage.MessageId);
+            eventContext.Logger.LogError(exc, "Recording batch item failure for message {MessageId}", messageContext.MessageId);
             return Task.CompletedTask;
         }
 
-        public Task MessageCompletedAsync(EventContext eventContext, MessageContext messageContext)
+        Task ISqsEventLogger.MessageCompletedAsync(EventContext eventContext, MessageContext messageContext)
         {
-            var sqsMessage = eventContext[messageContext.Index];
-            eventContext.Logger.LogTrace("Message completed: {Message}", sqsMessage.Body);
+            eventContext.Logger.LogTrace("Message completed: {Message}", messageContext.Body);
             return Task.CompletedTask;
         }
 
-        public Task BatchCompletedAsync(EventContext eventContext)
+        Task ISqsEventLogger.BatchCompletedAsync(EventContext eventContext)
         {
             var (sqsEvent, logger, _) = eventContext;
             logger.LogTrace("Batch completed: {batchSize} messages", sqsEvent.Records.Count);

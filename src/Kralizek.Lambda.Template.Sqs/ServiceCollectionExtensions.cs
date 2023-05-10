@@ -4,6 +4,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda.PartialBatch;
 
+/// <summary>
+/// Provides extensions to register services needed to handle messages, including partial batch support.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
@@ -32,6 +35,7 @@ public static class ServiceCollectionExtensions
         return configurator;
     }
 
+    /// <see cref="UsePartialBatchQueueMessageHandler" />
     [Obsolete("Use `services.UsePartialBatchQueueMessageHandler<TMessage, THandler>();` instead.")]
     public static IServiceCollection UsePartialBatchSqsHandler<TMessage, THandler>(this IServiceCollection services, bool enableParallelExecution = false)
         where TMessage : class
@@ -75,6 +79,11 @@ public static class ServiceCollectionExtensions
     }
 }
 
+/// <summary>
+/// An interface used to represent a configurator of <see cref="IMessageHandler{TMessage}"/>,
+/// with partial batch support.
+/// </summary>
+/// <typeparam name="TMessage">The internal type of the SQS message.</typeparam>
 public interface IPartialBatchMessageHandlerConfigurator<TMessage> : IMessageHandlerConfigurator<TMessage>
     where TMessage : class
 {
