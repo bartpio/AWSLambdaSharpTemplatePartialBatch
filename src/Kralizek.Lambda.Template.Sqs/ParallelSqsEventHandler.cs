@@ -61,7 +61,8 @@ public class ParallelSqsEventHandler<TMessage> : IEventHandler<SQSEvent>, IReque
     {
         if (input is { Records.Count: > 0 })
         {
-            await using var batchScopeServices = await _serviceProvider.CreateBatchScopeAsync(_logger, input).ConfigureAwait(false);
+            var eventContext = new EventContext(input, _logger, context); // for ISqsEventLogger
+            await using var batchScopeServices = await _serviceProvider.CreateBatchScopeAsync(eventContext).ConfigureAwait(false);
             var (sqsEventLogger, sqsMessageIndexMap) = batchScopeServices;
 
             await input.Records.ForEachAsync(_options.MaxDegreeOfParallelism, async singleSqsMessage =>
@@ -69,7 +70,8 @@ public class ParallelSqsEventHandler<TMessage> : IEventHandler<SQSEvent>, IReque
                 using var scope = _serviceProvider.CreateScope();
 
                 var sqsMessage = singleSqsMessage.Body;
-                await sqsEventLogger.MessageReceivedAsync(_logger, input, singleSqsMessage, sqsMessageIndexMap.GetIndex(singleSqsMessage)).ConfigureAwait(false);
+                var messageContext = new MessageContext(singleSqsMessage, sqsMessageIndexMap.GetIndex(singleSqsMessage), scope.ServiceProvider); // for ISqsEventLogger
+                await sqsEventLogger.MessageReceivedAsync(eventContext, messageContext).ConfigureAwait(false);
 
                 var serializer = _serviceProvider.GetRequiredService<IMessageSerializer>();
 
@@ -90,12 +92,12 @@ public class ParallelSqsEventHandler<TMessage> : IEventHandler<SQSEvent>, IReque
                 }
                 catch (Exception exc) when (batchItemFailures is not null)
                 {
-                    await sqsEventLogger.PartialBatchItemFailureAsync(_logger, input, singleSqsMessage, exc, sqsMessageIndexMap.GetIndex(singleSqsMessage)).ConfigureAwait(false);
+                    await sqsEventLogger.PartialBatchItemFailureAsync(eventContext, messageContext, exc).ConfigureAwait(false);
                     batchItemFailures.Add(new() { ItemIdentifier = singleSqsMessage.MessageId });
                 }
                 finally
                 {
-                    await sqsEventLogger.MessageCompletedAsync(_logger, input, singleSqsMessage, sqsMessageIndexMap.GetIndex(singleSqsMessage)).ConfigureAwait(false);
+                    await sqsEventLogger.MessageCompletedAsync(eventContext, messageContext).ConfigureAwait(false);
                 }
             });
         }

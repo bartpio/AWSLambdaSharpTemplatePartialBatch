@@ -1,7 +1,4 @@
-﻿using Amazon.Lambda.SQSEvents;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using static Amazon.Lambda.SQSEvents.SQSEvent;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace Kralizek.Lambda.PartialBatch.EventLog
 {
@@ -35,43 +32,43 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
             return new(sehLoggers);
         }
 
-        public async Task BatchReceivedAsync(ILogger logger, SQSEvent sqsEvent)
+        public async Task BatchReceivedAsync(EventContext eventContext)
         {
             foreach (var entry in _sehLoggers)
             {
-                await entry.BatchReceivedAsync(logger, sqsEvent).ConfigureAwait(false);
+                await entry.BatchReceivedAsync(eventContext).ConfigureAwait(false);
             }
         }
 
-        public async Task MessageReceivedAsync(ILogger logger, SQSEvent sqsEvent, SQSMessage sqsMessage, int index)
+        public async Task MessageReceivedAsync(EventContext eventContext, MessageContext messageContext)
         {
             foreach (var entry in _sehLoggers)
             {
-                await entry.MessageReceivedAsync(logger, sqsEvent, sqsMessage, index).ConfigureAwait(false);
+                await entry.MessageReceivedAsync(eventContext, messageContext).ConfigureAwait(false);
             }
         }
 
-        public async Task PartialBatchItemFailureAsync(ILogger logger, SQSEvent sqsEvent, SQSMessage sqsMessage, Exception exc, int index)
+        public async Task PartialBatchItemFailureAsync(EventContext eventContext, MessageContext messageContext, Exception exc)
         {
             foreach (var entry in _sehLoggers)
             {
-                await entry.PartialBatchItemFailureAsync(logger, sqsEvent, sqsMessage, exc, index).ConfigureAwait(false);
+                await entry.PartialBatchItemFailureAsync(eventContext, messageContext, exc).ConfigureAwait(false);
             }
         }
 
-        public async Task MessageCompletedAsync(ILogger logger, SQSEvent sqsEvent, SQSMessage sqsMessage, int index)
+        public async Task MessageCompletedAsync(EventContext eventContext, MessageContext messageContext)
         {
             foreach (var entry in _sehLoggers)
             {
-                await entry.MessageCompletedAsync(logger, sqsEvent, sqsMessage, index).ConfigureAwait(false);
+                await entry.MessageCompletedAsync(eventContext, messageContext).ConfigureAwait(false);
             }
         }
 
-        public async Task BatchCompletedAsync(ILogger logger, SQSEvent sqsEvent)
+        public async Task BatchCompletedAsync(EventContext eventContext)
         {
             foreach (var entry in _sehLoggers)
             {
-                await entry.BatchCompletedAsync(logger, sqsEvent).ConfigureAwait(false);
+                await entry.BatchCompletedAsync(eventContext).ConfigureAwait(false);
             }
         }
     }
