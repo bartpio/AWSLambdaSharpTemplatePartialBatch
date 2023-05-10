@@ -32,7 +32,7 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
             return new(sehLoggers);
         }
 
-        async Task ISqsEventLogger.BatchReceivedAsync(EventContext eventContext)
+        async ValueTask ISqsEventLogger.BatchReceivedAsync(EventContext eventContext)
         {
             foreach (var entry in _sehLoggers)
             {
@@ -40,7 +40,7 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
             }
         }
 
-        async Task ISqsEventLogger.MessageReceivedAsync(EventContext eventContext, MessageContext messageContext)
+        async ValueTask ISqsEventLogger.MessageReceivedAsync(EventContext eventContext, MessageContext messageContext)
         {
             foreach (var entry in _sehLoggers)
             {
@@ -48,7 +48,7 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
             }
         }
 
-        async Task ISqsEventLogger.PartialBatchItemFailureAsync(EventContext eventContext, MessageContext messageContext, Exception exc)
+        async ValueTask ISqsEventLogger.PartialBatchItemFailureAsync(EventContext eventContext, MessageContext messageContext, Exception exc)
         {
             foreach (var entry in _sehLoggers)
             {
@@ -56,7 +56,7 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
             }
         }
 
-        async Task ISqsEventLogger.MessageCompletedAsync(EventContext eventContext, MessageContext messageContext)
+        async ValueTask ISqsEventLogger.MessageCompletedAsync(EventContext eventContext, MessageContext messageContext)
         {
             foreach (var entry in _sehLoggers)
             {
@@ -64,7 +64,7 @@ namespace Kralizek.Lambda.PartialBatch.EventLog
             }
         }
 
-        async Task ISqsEventLogger.BatchCompletedAsync(EventContext eventContext)
+        async ValueTask ISqsEventLogger.BatchCompletedAsync(EventContext eventContext)
         {
             foreach (var entry in _sehLoggers)
             {

@@ -8,26 +8,26 @@
         /// <summary>
         /// Called at the start of a batch.
         /// </summary>
-        Task BatchReceivedAsync(EventContext eventContext);
+        ValueTask BatchReceivedAsync(EventContext eventContext);
 
         /// <summary>
         /// Called for each message in the batch, before processing begins.
         /// </summary>
-        Task MessageReceivedAsync(EventContext eventContext, MessageContext messageContext);
+        ValueTask MessageReceivedAsync(EventContext eventContext, MessageContext messageContext);
 
         /// <summary>
         /// Called for each message that experienced a failure. The exception thrown from the message handler is supplied as <paramref name="exc"/>.
         /// </summary>
-        Task PartialBatchItemFailureAsync(EventContext eventContext, MessageContext messageContext, Exception exc);
+        ValueTask PartialBatchItemFailureAsync(EventContext eventContext, MessageContext messageContext, Exception exc);
 
         /// <summary>
         /// Called for each message, after the message is done processing, or the message fails to process succesfully.
         /// </summary>
-        Task MessageCompletedAsync(EventContext eventContext, MessageContext messageContext);
+        ValueTask MessageCompletedAsync(EventContext eventContext, MessageContext messageContext);
 
         /// <summary>
         /// Called after all messages in a batch have been processed.
         /// </summary>
-        Task BatchCompletedAsync(EventContext eventContext);
+        ValueTask BatchCompletedAsync(EventContext eventContext);
     }
 }
