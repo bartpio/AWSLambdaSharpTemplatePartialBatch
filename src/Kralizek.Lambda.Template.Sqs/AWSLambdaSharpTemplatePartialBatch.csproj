@@ -7,7 +7,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <VersionPrefix>5.2.0</VersionPrefix>
+    <VersionPrefix>5.2.1</VersionPrefix>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Description>Adds partial batch support for SQS-triggered Lambdas to Kralizek's AWSLambdaSharpTemplate</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
