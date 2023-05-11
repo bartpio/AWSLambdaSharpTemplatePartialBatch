@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AWSLambdaSharpTemplateParti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Lambda.Template", "tests\Tests.Lambda.Template\Tests.Lambda.Template.csproj", "{CC85B688-D987-4CC1-B080-4A7096609652}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AWSLambdaSharpTemplatePartialBatch.Metrics", "src\AWSLambdaSharpTemplatePartialBatch.Metrics\AWSLambdaSharpTemplatePartialBatch.Metrics.csproj", "{2CD60ECA-0A72-4E4E-AEBF-DAF483AD1B13}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{CC85B688-D987-4CC1-B080-4A7096609652}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC85B688-D987-4CC1-B080-4A7096609652}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC85B688-D987-4CC1-B080-4A7096609652}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CD60ECA-0A72-4E4E-AEBF-DAF483AD1B13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CD60ECA-0A72-4E4E-AEBF-DAF483AD1B13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CD60ECA-0A72-4E4E-AEBF-DAF483AD1B13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CD60ECA-0A72-4E4E-AEBF-DAF483AD1B13}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

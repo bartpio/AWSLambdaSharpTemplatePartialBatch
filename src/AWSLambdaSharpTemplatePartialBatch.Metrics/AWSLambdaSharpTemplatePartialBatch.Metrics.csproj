@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<VersionPrefix>0.0.1</VersionPrefix>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Description>Adds detailed CloudWatch metrics support for SQS-triggered partial batch Lambdas</Description>
+		<RepositoryUrl>https://github.com/bartpio/AWSLambdaSharpTemplatePartialBatch</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<RootNamespace>Kralizek.Lambda.PartialBatch.Metrics</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AWSSDK.CloudWatch" Version="3.7.103.68" />
+		<PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Kralizek.Lambda.Template.Sqs\AWSLambdaSharpTemplatePartialBatch.csproj" />
+	</ItemGroup>
+
+</Project>
