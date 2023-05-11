@@ -58,17 +58,22 @@ namespace Kralizek.Lambda.PartialBatch.Metrics
             return new() { Dimensions = _dimensions, MetricName = name, StorageResolution = 1, TimestampUtc = DateTime.UtcNow, Unit = StandardUnit.Count, Value = 1 };
         }
 
+        public MetricDatum BuildDatum(string name, TimeSpan span)
+        {
+            return new() { Dimensions = _dimensions, MetricName = name, StorageResolution = 1, TimestampUtc = DateTime.UtcNow, Unit = StandardUnit.Milliseconds, Value = span.TotalMilliseconds };
+        }
+
+        public MetricDatum BuildDatum(string name, double count)
+        {
+            return new() { Dimensions = _dimensions, MetricName = name, StorageResolution = 1, TimestampUtc = DateTime.UtcNow, Unit = StandardUnit.Count, Value = count };
+        }
+
         ValueTask ISqsEventLogger.MessageCompletedAsync(EventContext eventContext, MessageContext messageContext)
         {
             var span = _stopwatches[messageContext.Index].Elapsed;
             _data.Add(BuildDatum("PartialBatchItemInvocations"));
             _data.Add(BuildDatum("PartialBatchItemDuration", span));
             return ValueTask.CompletedTask;
-        }
-
-        public MetricDatum BuildDatum(string name, TimeSpan span)
-        {
-            return new() { Dimensions = _dimensions, MetricName = name, StorageResolution = 1, TimestampUtc = DateTime.UtcNow, Unit = StandardUnit.Milliseconds, Value = span.TotalMilliseconds };
         }
 
         ValueTask ISqsEventLogger.PartialBatchItemFailureAsync(EventContext eventContext, MessageContext messageContext, Exception exc)
@@ -79,6 +84,8 @@ namespace Kralizek.Lambda.PartialBatch.Metrics
 
         async ValueTask ISqsEventLogger.BatchCompletedAsync(EventContext eventContext)
         {
+            _data.Add(BuildDatum("PartialBatchSize", _stopwatches.Length));
+
             var req = new PutMetricDataRequest() { Namespace = "AWS/Lambda", MetricData = _data.ToList() };
             var remaining = eventContext.LambdaContext.RemainingTime - TimeSpan.FromSeconds(2);
 
