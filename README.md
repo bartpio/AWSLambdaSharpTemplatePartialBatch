@@ -38,3 +38,7 @@ Optionally, implementations of `ISqsEventLogger` can be registered, to inspect t
  - `BatchCompletedAsync` is called after all messages in a batch have been processed.
 
 `MessageReceivedAsync`, `PartialBatchItemFailureAsync`, and `MessageCompletedAsync` may be called from various threads simultaneously, when parallel execution is enabled.
+
+## Manual Batch Processing
+
+When processing an entire batch at once is desired, use interfaces and extension methods in the `Kralizek.Lambda.PartialBatch.ManualBatch` namespace. Build an implementation of `Kralizek.Lambda.PartialBatch.ManualBatch.IMessageHandler` that receives a list of messages, and returns the indices of succesfully processed messages. Provide its type to the `UsePartialBatchQueueMessageHandler` extension method. The library will return the identifiers of messages *not* succesfully processed to AWS.
